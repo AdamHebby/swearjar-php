@@ -1,23 +1,25 @@
 <?php
 
 require_once 'swearjar/Tester.php';
-use \swearjar\Tester;
 
-class TesterTest extends \PHPUnit_Framework_TestCase {
+use PHPUnit\Framework\TestCase;
+use Swearjar\Tester;
 
-	public $tester;
+class TesterTest extends TestCase {
 
-	public function setUp() {
+	public Tester $tester;
+
+	public function setUp(): void {
 		$this->tester = new Tester;
 	}
 
-	public function testProfane() {
+	public function testProfane(): void {
 		$this->assertTrue($this->tester->profane('fuck you john doe'));
 		$this->assertTrue($this->tester->profane('FUCK you john doe'));
 		$this->assertFalse($this->tester->profane('i love you john doe'));
 	}
 
-	public function testScorecard() {
+	public function testScorecard(): void {
 		$scorecard = $this->tester->scorecard('fuck you john doe');
 		$expected = array('sexual' => 1);
 		$this->assertEquals($expected, $scorecard);
@@ -27,7 +29,7 @@ class TesterTest extends \PHPUnit_Framework_TestCase {
 		$this->assertEquals($expected, $scorecard);
 	}
 
-	public function testCensor() {
+	public function testCensor(): void {
 		$text = $this->tester->censor('John Doe has a massive hard on he is gonna use to fuck everybody');
 		$expected = 'John Doe has a massive **** ** he is gonna use to **** everybody';
 		$this->assertEquals($expected, $text);
@@ -37,7 +39,7 @@ class TesterTest extends \PHPUnit_Framework_TestCase {
 		$this->assertEquals($expected, $text);
 	}
 
-	public function testEdgeCases() {
+	public function testEdgeCases(): void {
 		$result = $this->tester->censor("Assasin's Creed Ass");
 		$expected = "Assasin's Creed ***";
 		$this->assertEquals($expected, $result);
