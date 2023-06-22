@@ -13,6 +13,7 @@ use \Symfony\Component\Yaml\Yaml;
  */
 class Tester {
 	protected array $matchers = array();
+	private bool $leetCodeDetection = false;
 
 	public const FILTER_BLASPHEMY = 'blasphemy';
 	public const FILTER_DISCRIMINATORY = 'discriminatory';
@@ -29,6 +30,11 @@ class Tester {
 		}
 
 		$this->loadFile($file);
+	}
+
+	public function enableLeetcodeDetection(bool $enabled = true): self {
+		$this->leetCodeDetection = $enabled;
+		return $this;
 	}
 
 	/**
@@ -50,6 +56,7 @@ class Tester {
 	 * in the text, and `$types` is a list of tags for the word.
 	 */
 	public function scan(string $text, \Closure $callback): void {
+		$text = $this->replaceLeetCode($text);
 		preg_match_all('/\w+/u', $text, $matches, PREG_OFFSET_CAPTURE);
 
 		foreach ($matches[0] as $match) {
@@ -82,6 +89,7 @@ class Tester {
 	 * @param array<string> $filters From Tester::
 	 */
 	public function containsType(string $text, array $filters): bool {
+		$text     = $this->replaceLeetCode($text);
 		$contains = false;
 		$filters  = array_flip(array_map('strtolower', $filters));
 
@@ -103,6 +111,7 @@ class Tester {
 	 * Returns true if `$text` contains profanity
 	 */
 	public function profane(string $text): bool {
+		$text    = $this->replaceLeetCode($text);
 		$profane = false;
 
 		$this->scan($text, function (string $word, int $index, array $types) use (&$profane) {
@@ -119,6 +128,7 @@ class Tester {
 	 * @return array<string,int>
 	 */
 	public function scorecard(string $text): array {
+		$text      = $this->replaceLeetCode($text);
 		$scorecard = [];
 
 		$this->scan($text, function (string $word, int $index, array $types) use (&$scorecard) {
@@ -151,5 +161,71 @@ class Tester {
 		});
 
 		return $censored;
+	}
+
+	/**
+	 * A strict scan, primarily for usernames where words don't have spaces, and could have letters in the middle.
+	 *
+	 * This is very likely to have false positives, so it's not recommended for general use.
+	 */
+	public function scanStrict(string $text): bool {
+		$text = $this->replaceLeetCode($text);
+
+		foreach ($this->matchers['regex'] as $regex => $types) {
+			if (preg_match('/' . $regex . '/i', $text)) {
+				return true;
+			}
+		}
+
+		foreach ($this->matchers['simple'] as $word => $types) {
+			if (mb_stripos($text, $word) !== false) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private function replaceLeetCode(string $text): string {
+		if (!$this->leetCodeDetection) {
+			return $text;
+		}
+
+		$leet = array(
+			'a' => array('@', '4'),
+			'b' => array('8', '13', '6'),
+			'c' => array('('),
+			'd' => array(')'),
+			'e' => array('3'),
+			'f' => array('ph'),
+			'g' => array('6', '9'),
+			'h' => array('4', '|-|'),
+			'i' => array('1', '!', '|'),
+			'j' => array('_|'),
+			'k' => array('|<', '1<'),
+			'l' => array('1', '|'),
+			'm' => array('|\/|', '|v|', '/\/\\'),
+			'n' => array('|\/|', '/\/'),
+			'o' => array('0'),
+			'p' => array('|D'),
+			'q' => array('9'),
+			'r' => array('12', '|2'),
+			's' => array('5', '$'),
+			't' => array('7', '+'),
+			'u' => array('v'),
+			'v' => array('\/'),
+			'w' => array('\/\/', 'vv'),
+			'x' => array('><', '}{'),
+			'y' => array('`/'),
+			'z' => array('2'),
+		);
+
+		foreach ($leet as $letter => $replacements) {
+			foreach ($replacements as $replacement) {
+				$text = str_replace($replacement, $letter, $text);
+			}
+		}
+
+		return $text;
 	}
 }

@@ -56,4 +56,17 @@ class TesterTest extends TestCase {
 		$expected = "Assasin's Creed ***";
 		$this->assertEquals($expected, $result);
 	}
+
+	public function testScanStrictWithUsernames(): void {
+		$this->assertTrue($this->tester->scanStrict('ImAPussyFucker3000'));
+		$this->assertTrue($this->tester->scanStrict('Buttplug2Tester'));
+		$this->assertFalse($this->tester->scanStrict('Longusernamewithnocursewords'));
+		$this->assertTrue($this->tester->scanStrict('AssasinsCreed')); // Expected to be a false positive, but it's strict
+	}
+
+	public function testScanStrictWithUsernamesUsingLeetCode(): void {
+		$this->tester->enableLeetcodeDetection();
+		$this->assertTrue($this->tester->scanStrict('Th3P0rn0M45ter'));
+		$this->assertTrue($this->tester->scanStrict('\/@91n@')); // A bit extreme, but thoroughly tests the leet code
+	}
 }
