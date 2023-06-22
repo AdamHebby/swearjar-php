@@ -17,6 +17,11 @@ class TesterTest extends TestCase {
 		$this->assertTrue($this->tester->profane('fuck you john doe'));
 		$this->assertTrue($this->tester->profane('FUCK you john doe'));
 		$this->assertFalse($this->tester->profane('i love you john doe'));
+
+		$this->assertTrue($this->tester->profane('butt plug'));
+		$this->assertTrue($this->tester->profane('I am wearing a butt plug'));
+		$this->assertTrue($this->tester->profane('I am wearing a buttplug'));
+		$this->assertTrue($this->tester->profane('I love wearing buttplugs'));
 	}
 
 	public function testScorecard(): void {
@@ -27,6 +32,13 @@ class TesterTest extends TestCase {
 		$scorecard = $this->tester->scorecard('fuck you john doe bitch');
 		$expected = array('sexual' => 1, 'insult' => 1);
 		$this->assertEquals($expected, $scorecard);
+	}
+
+	public function testTypeFiltering(): void {
+		$this->assertTrue($this->tester->containsType('pussylicking shitcunt', [Tester::FILTER_SEXUAL]));
+		$this->assertTrue($this->tester->containsType('pussylicking shitcunt', [Tester::FILTER_INSULT]));
+		$this->assertTrue($this->tester->containsType('pussylicking shitcunt', [Tester::FILTER_SEXUAL, Tester::FILTER_INSULT]));
+		$this->assertFalse($this->tester->containsType('pussylicking shitcunt', [Tester::FILTER_BLASPHEMY]));
 	}
 
 	public function testCensor(): void {

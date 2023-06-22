@@ -14,6 +14,12 @@ use \Symfony\Component\Yaml\Yaml;
 class Tester {
 	protected array $matchers = array();
 
+	public const FILTER_BLASPHEMY = 'blasphemy';
+	public const FILTER_DISCRIMINATORY = 'discriminatory';
+	public const FILTER_INAPPROPRIATE = 'inappropriate';
+	public const FILTER_INSULT = 'insult';
+	public const FILTER_SEXUAL = 'sexual';
+
 	/**
 	 * Constructor
 	 */
@@ -68,6 +74,29 @@ class Tester {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Returns true if text contains profanity of the given type.
+	 *
+	 * @param array<string> $filters From Tester::
+	 */
+	public function containsType(string $text, array $filters): bool {
+		$contains = false;
+		$filters  = array_flip(array_map('strtolower', $filters));
+
+		$this->scan($text, function (string $word, int $index, array $types) use (&$contains, $filters) {
+			foreach ($types as $type) {
+				if (isset($filters[$type])) {
+					$contains = true;
+					return false;
+				}
+			}
+
+			return true;
+		});
+
+		return $contains;
 	}
 
 	/**
