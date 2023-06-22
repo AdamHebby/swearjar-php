@@ -1,6 +1,6 @@
 <?php
 
-require_once 'swearjar/Tester.php';
+declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Swearjar\Tester;
@@ -10,7 +10,7 @@ class TesterTest extends TestCase {
 	public Tester $tester;
 
 	public function setUp(): void {
-		$this->tester = new Tester;
+		$this->tester = new Tester();
 	}
 
 	public function testProfane(): void {

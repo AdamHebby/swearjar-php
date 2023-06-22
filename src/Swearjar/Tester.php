@@ -1,13 +1,15 @@
 <?php
 
-namespace swearjar;
+declare(strict_types=1);
+
+namespace Swearjar;
 
 use \Symfony\Component\Yaml\Yaml;
 
 /**
  * Profanity tester class.
  *
- * @package swearjar
+ * @package Swearjar
  */
 class Tester {
 	protected array $matchers = array();
@@ -17,7 +19,7 @@ class Tester {
 	 */
 	public function __construct(?string $file = null) {
 		if ($file === null) {
-			$file = __DIR__ . '/config/en.yml';
+			$file = __DIR__ . '/../../config/en.yml';
 		}
 
 		$this->loadFile($file);
@@ -74,7 +76,7 @@ class Tester {
 	public function profane(string $text): bool {
 		$profane = false;
 
-		$this->scan($text, function($word, $index, $types) use (&$profane) {
+		$this->scan($text, function (string $word, int $index, array $types) use (&$profane) {
 			$profane = true;
 			return false;
 		});
@@ -90,7 +92,7 @@ class Tester {
 	public function scorecard(string $text): array {
 		$scorecard = [];
 
-		$this->scan($text, function($word, $index, $types) use (&$scorecard) {
+		$this->scan($text, function (string $word, int $index, array $types) use (&$scorecard) {
 			foreach ($types as $type) {
 				$scorecard[$type] = ($scorecard[$type] ?? 0) + 1;
 			}
@@ -109,9 +111,13 @@ class Tester {
 
 		$offset = $hint ? 1 : 0;
 
-		$this->scan($text, function($word, $index, $types) use (&$censored, $offset) {
+		$this->scan($text, function (string $word, int $index, array $types) use (&$censored, $offset) {
 			$censoredWord = preg_replace('/\S/', '*', $word);
-			$censored = mb_substr($censored, 0, $index + $offset) . mb_substr($censoredWord, $offset) . mb_substr($censored, $index + mb_strlen($word));
+			$censored = (
+				mb_substr($censored, 0, $index + $offset) .
+				mb_substr($censoredWord, $offset) .
+				mb_substr($censored, $index + mb_strlen($word))
+			);
 			return true;
 		});
 
